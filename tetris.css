@@ -1,0 +1,52 @@
+#tetris {
+    position: relative;
+    height: auto;
+}
+#tetris .inline {
+    display: inline;
+}
+#tetris #top_display {
+    position: absolute;
+    top: 5px;
+}
+#tetris #counter{
+    color: blue;
+}
+#tetris #score {
+    position:absolute;
+    top: 35px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+#tetris #scoreboard {
+    position: absolute;
+    background-color: blue;
+    top: 70px;
+    right: 0px;
+}
+#tetris table {
+    position: absolute;
+    width: 100%;
+    border-collapse: collapse;
+}
+#tetris tr {
+    width: 100%;
+}
+#tetris th, td {
+    border: 1px solid black;
+    width: 33%;
+    padding: 8px;
+}
+#tetris th {
+    background-color: blue;
+    color: white;
+}
+#tetris #canvas_container{
+    position: absolute;
+    left: 0px;
+    top: 70px;
+}
+#tetris canvas {
+    border: 1px solid black;
+    background-color: #fcf3cf;
+}
