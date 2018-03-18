@@ -4,9 +4,16 @@ var canvas_width = 7;
 var canvas_height = 12;
 var size = 60;
 var speed = 500;
-var colors = [
-    "red", "blue", "green", "brown", "purple", "cyan", "magenta"
+
+//load images for block
+var faces = [
 ];
+
+for(var i = 0;i<7;i++){
+	var img = document.createElement('img');
+	img.src = "img/face_0" + i + ".jpg";
+	faces.push(img);
+}
 
 var shapes = [
 
@@ -75,7 +82,6 @@ var shapes = [
 		]
     }
 ];
-var space = {};
 var name;
 
 //try to look a specific container 
@@ -246,6 +252,7 @@ var canvas_obj = {
     canvas: document.createElement("canvas"),
     ctx: null,
     counter: 0,
+	space: {},
     setup: function(){
 		var canvas_container = document.createElement("div");
 		canvas_container.id = "canvas_container";
@@ -258,19 +265,29 @@ var canvas_obj = {
 		//setup block object with canvas's context
 		block.setup(this.ctx);
     },
-    draw: function(top, bottom) {
+    draw: function() {
+		this.clear(); 
+		var space = this.space;
 
 		//fills cells according to information recorded in the space object
-		for(var i = bottom;i != top;i--){
+		for(var i = 0;i < canvas_height;i++){
 			if(space[i] !== undefined){
-				Object.keys(space[i]).forEach(function(key){
-					canvas_obj.ctx.fillStyle = space[i][key];
-					canvas_obj.ctx.fillRect(key * size, i * size, size, size);
-				});
+				var keys = Object.keys(space[i]);
+				for(var j = 0;j<keys.length;j++){
+					var key = keys[j];
+					this.ctx.drawImage(space[i][key], 
+						key * size, 
+						i * size,
+						size, size);
+				}
 			}
 		}
+		
+		//draw the block	
+		block.draw();
     },
     handle_completed: function(completed){
+		var space = this.space;
 
 		//add to score
 		switch(completed.length){
@@ -310,16 +327,13 @@ var canvas_obj = {
 			current--;
 		}
 
-		//clear and redraw the changed section
-		this.clear(0, 0, canvas_width * size, (bottom + 1) * size); 
-		this.draw(0, bottom);
 		this.update_score();
 	},
     update_score: function(){
 		document.querySelector('#tetris #counter').innerHTML = this.counter;
 	},
-	clear: function(x, y, width, height){
-		this.ctx.clearRect(x, y, width, height);
+	clear: function(){
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	}
 };
 
@@ -332,17 +346,20 @@ var block = {
     dy: 0,
     landed: false,
     ctx: null,
+	id: 0,
+	img: null,
     setup: function(ctx){
 		this.x = Math.floor(canvas_width / 2);
 		this.y = 0;
 		this.dx = 0;
 		this.dy = 0;
 		this.landed = false;
-		var pick = Math.floor(Math.random() * shapes.length);
-		this.shape = shapes[pick]; 
+		this.id = Math.floor(Math.random() * shapes.length);
+		this.shape = shapes[this.id]; 
 		this.ctx = ctx;
-		this.ctx.fillStyle = colors[pick];
-		this.draw();
+		//this.ctx.fillStyle = colors[pick];
+		this.img = faces[this.id];
+		//this.draw();
     },
     try_rotate: function(drt){
 
@@ -373,6 +390,7 @@ var block = {
 		//check with canvas width and height and space object to validate a move
 		var new_x = this.x + dx;
 		var new_y = this.y + dy;
+		var space = canvas_obj.space;
 		for(var i = 0;i < offsets.length;i++){
 			var offset_y = new_y + offsets[i][1];
 			if(offset_y > canvas_height - 1) return false;
@@ -392,16 +410,21 @@ var block = {
 
 		//update space object to take up the current space of the block
 		var completed = [];
-		this.shape.offsets.forEach(function(offset){
-			var offset_y = y + (offset[1]);
-			if(space[offset_y] === undefined) space[offset_y] = {};
-			space[offset_y][x + (offset[0])] = block.ctx.fillStyle;
-			if(Object.keys(space[offset_y]).length == canvas_width){
+		var offsets = this.shape.offsets;
+		var space = canvas_obj.space;
+		for(var i = 0;i<offsets.length;i++){
+			var offset = offsets[i];
+			var offseted_y = y + offset[1];
+			var offseted_x = x + offset[0];
+			if(space[offseted_y] === undefined) 
+				space[offseted_y] = {};
+			space[offseted_y][offseted_x] = this.img;
+			if(Object.keys(space[offseted_y]).length == canvas_width){
 				
 				//push current offset's y onto competed when it completes a row
-				completed.push(offset_y);
+				completed.push(offseted_y);
 			}
-		});
+		}
 
 		//return the completed array if any row is completed
 		if(completed.length){
@@ -422,13 +445,19 @@ var block = {
 		//draw current block on canvas
 		var offsets = this.shape.offsets;
 		for(var i = 0;i < offsets.length;i++){
-			this.ctx.fillRect((this.x + offsets[i][0]) * size, (this.y + offsets[i][1]) * size, size, size);
+			var offseted_x = this.x + offsets[i][0];
+			var offseted_y = this.y + offsets[i][1];
+			this.ctx.drawImage(this.img, 
+				offseted_x * size, 
+				offseted_y * size,
+				size, size);
 		}
 	},
 	drop: function(){
 		
 		//try to drop down by 1 space
 		if(!this.try_move(0,1)) this.landed = true;
+		this.move(block.dx, block.dy);
     }
 }
 
@@ -445,12 +474,8 @@ if(container &&
 function update(){
 
 	//update game state
-    block.drop();
-    block.erase();
-    block.move(block.dx, block.dy);
-    block.draw();
+	canvas_obj.draw();
     if(block.landed) {
-
 		//let the canvas handle any completed rows
 		var completed;
 		if(completed = block.take_space(block.x, block.y)){ 
@@ -458,13 +483,26 @@ function update(){
 		}
 
 		//checks if blocks has piled to top
-		if(space[0] === undefined){ 
+		if(canvas_obj.space[0] === undefined){ 
 			block.setup(block.ctx);
-			setTimeout(update, speed);
+
+			//give chance to move the block
+			block.draw();
+			setTimeout(function(){
+				block.drop();
+
+				//continue to the next frame
+				update();
+			}, speed);
 		} else {
 			game_over();
 		}
-    } else setTimeout(update, speed); //continue to the next frame
+    } else setTimeout(function(){ 
+				block.drop();
+
+				//continue to the next frame
+				update();
+			}, speed); 
 }
 
 function game_over(){
