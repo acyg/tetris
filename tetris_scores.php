@@ -2,7 +2,7 @@
     $conn = new mysqli('localhost', 'username', 'password');
     if($err = mysqli_connect_errno()){
 
-		echo "<h2 style='color: white; text-align: center;'>stconnection failed: ".$err."</h2>";
+		echo "<h2 style='color: white; text-align: center;'>connection failed: ".$err."</h2>";
 		exit();
     }
 
@@ -25,7 +25,7 @@
 				update_scores($conn, $player, $score); 
 		break;
 
-		//make get scores data from database and and echo as json
+		//get scores data from database and echo as json
 		case 'get':
 			if(!$conn->query("show databases like 'game_scores'")->num_rows) 
 				echo "<h2 style='color: white; text-align: center;'>no score uploaded yet</h2>";

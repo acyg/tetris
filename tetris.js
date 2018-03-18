@@ -487,7 +487,7 @@ function update(){
 			block.setup(block.ctx);
 
 			//give chance to move the block
-			block.draw();
+			canvas_obj.draw();
 			setTimeout(function(){
 				block.drop();
 
