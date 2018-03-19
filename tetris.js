@@ -9,77 +9,77 @@ var speed = 500;
 var faces = [
 ];
 
-for(var i = 0;i<7;i++){
-	var img = document.createElement('img');
-	img.src = "img/face_0" + i + ".jpg";
-	faces.push(img);
+for (var i = 0; i < 7; i++) {
+    var img = document.createElement('img');
+    img.src = "img/face_0" + i + ".jpg";
+    faces.push(img);
 }
 
 var shapes = [
 
-	//tetris shapes
+    //tetris shapes
     {
-		//J shape
-		offsets: [
-			[0,0],
-			[0,1],
-			[-1,1],
-			[0,-1]
-		]
+        //J shape
+        offsets: [
+            [0, 0],
+            [0, 1],
+            [-1, 1],
+            [0, -1]
+        ]
     },
     {
-		//I shape
-		offsets: [
-			[0,0],
-			[0,-1],
-			[0,-2],
-			[0,1]
-		]
+        //I shape
+        offsets: [
+            [0, 0],
+            [0, -1],
+            [0, -2],
+            [0, 1]
+        ]
     },
     {
-		//O shape
-		offsets: [
-			[0,0],
-			[-1,0],
-			[-1,-1],
-			[0,-1]
-		]
+        //O shape
+        offsets: [
+            [0, 0],
+            [-1, 0],
+            [-1, -1],
+            [0, -1]
+        ]
     },
     {
-		//T shape
-		offsets: [
-			[0,0],
-			[-1,0],
-			[0,-1],
-			[1,0]
-		]
+        //T shape
+        offsets: [
+            [0, 0],
+            [-1, 0],
+            [0, -1],
+            [1, 0]
+        ]
     },
     {
-		//L shape
-		offsets: [
-			[0,0],
-			[0,-1],
-			[0,1],
-			[1,1]
-		]
-    },    
-    {
-		//S shape
-		offsets: [
-			[0,0],
-			[-1,0],
-			[0,-1],
-			[1,-1]
-		]
+        //L shape
+        offsets: [
+            [0, 0],
+            [0, -1],
+            [0, 1],
+            [1, 1]
+        ]
     },
     {
-		//Z shape
-		offsets: [
-			[0,0],
-			[-1,-1],
-			[0,-1],
-			[1,0]
-		]
+        //S shape
+        offsets: [
+            [0, 0],
+            [-1, 0],
+            [0, -1],
+            [1, -1]
+        ]
+    },
+    {
+        //Z shape
+        offsets: [
+            [0, 0],
+            [-1, -1],
+            [0, -1],
+            [1, 0]
+        ]
     }
 ];
 var name;
@@ -87,9 +87,9 @@ var name;
 //try to look a specific container 
 var container = document.querySelector("#tetris");
 
-function prepare_css(){
+function prepare_css() {
 
-	//add css
+    //add css
     var link = document.createElement("link");
     link.rel = "stylesheet";
     link.type = "text/css";
@@ -97,9 +97,9 @@ function prepare_css(){
     document.getElementsByTagName("head")[0].appendChild(link);
 }
 
-function top_display_setup(){
+function top_display_setup() {
 
-	//ask for a player name input
+    //ask for a player name input
     var display = document.createElement("div");
     display.id = "top_display";
     var ask_name = document.createElement("div");
@@ -115,20 +115,20 @@ function top_display_setup(){
     button.setAttribute("type", "button");
     button.innerHTML = "Enter";
 
-	//starts the game when name is entered
-    button.addEventListener("click", function(){
-		start(input.value);
+    //starts the game when name is entered
+    button.addEventListener("click", function () {
+        start(input.value);
     });
 
     ask_name.appendChild(button);
     display.appendChild(ask_name);
-	return display;
+    return display;
 
 }
 
-function score_setup(){
+function score_setup() {
 
-	//add score counter
+    //add score counter
     var score = document.createElement("h2");
     score.id = "score";
     score.innerHTML = "Score : ";
@@ -137,88 +137,88 @@ function score_setup(){
     counter.id = "counter";
     counter.innerHTML = 0;
     score.appendChild(counter);
-	return score;	
+    return score;
 
 }
 
-function scoreboard_setup(){
+function scoreboard_setup() {
 
-	//initiate the scoreboard area
+    //initiate the scoreboard area
     var board = document.createElement("div");
     board.id = "scoreboard";
     board.style.width = (canvas_width * size) + "px";
-	
-	request_scores("get", {}, function(status, result){
-		if(status == 200 && result){
-			try {
-				board.appendChild(json_table(JSON.parse(result)));
-			} catch(e) {
-				board.innerHTML = result;
-			}
-		} else {
-			var err = document.createElement("h3");
-			err.innerHTML = "Error sending Request.";
-			err.style.textAlign = "center";
-			err.style.color = "white";
-			board.appendChild(err);
-		}
-	});
 
-	return board;
+    request_scores("get", {}, function (status, result) {
+        if (status == 200 && result) {
+            try {
+                board.appendChild(json_table(JSON.parse(result)));
+            } catch (e) {
+                board.innerHTML = result;
+            }
+        } else {
+            var err = document.createElement("h3");
+            err.innerHTML = "Error sending Request.";
+            err.className = "error";
+            board.appendChild(err);
+        }
+    });
+
+    return board;
 }
 
-function request_scores(option, params, callback){
+function request_scores(option, params, callback) {
 
-	//use ajax to get or update scores with myql via php
+    //use ajax to get or update scores with myql via php
     var request = new XMLHttpRequest();
-    request.onreadystatechange = function(){
-		if(this.readyState == 4)
-			if(this.status == 200 && this.responseText) 
-				callback(200, this.responseText);
-			else callback(this.staus, 0);
+    request.onreadystatechange = function () {
+        if (this.readyState == 4)
+            if (this.status == 200 && this.responseText)
+                callback(200, this.responseText);
+            else
+                callback(this.staus, 0);
     }
 
     request.open("POST", "tetris_scores.php", true);
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
-	message = "action=" + option;
-	Object.keys(params).forEach(function(key){
-		message += ("&" + key + "=" + params[key]);
-	});
+    message = "action=" + option;
+    Object.keys(params).forEach(function (key) {
+        message += ("&" + key + "=" + params[key]);
+    });
 
     request.send(message);
 }
 
-function json_table(results){
+function json_table(results) {
 
-	//returns an filled table element from a json
-	var table = document.createElement("table");
-	var row = document.createElement("tr");
-	var cell;
-	
-	Object.keys(results[0]).forEach(function(key){
-		cell = document.createElement("th");
-		cell.innerHTML = key;
-		row.appendChild(cell);
-	});
-	table.appendChild(row);
-	results.forEach(function(result){
-		row = document.createElement("tr");
-		Object.values(result).forEach(function(value){
-			cell = document.createElement("td");
-			cell.innerHTML = value;
-			row.id = row.id + "_" + value;
-			row.appendChild(cell);
-		});
-		table.appendChild(row);
-	});
+    //returns an filled table element from a json
+    var table = document.createElement("table");
+    var row = document.createElement("tr");
+    var cell;
 
-	return table;
+    Object.keys(results[0]).forEach(function (key) {
+        cell = document.createElement("th");
+        cell.innerHTML = key;
+        row.appendChild(cell);
+    });
+    table.appendChild(row);
+    results.forEach(function (result) {
+        row = document.createElement("tr");
+        Object.values(result).forEach(function (value) {
+            cell = document.createElement("td");
+            cell.innerHTML = value;
+            row.id = row.id + "_" + value;
+            row.appendChild(cell);
+        });
+        table.appendChild(row);
+    });
+
+    return table;
 }
 
-function setup(){
+function setup() {
 
-	//execute all setups
+    //execute all setups
     prepare_css();
     container.appendChild(top_display_setup());
     container.appendChild(score_setup());
@@ -226,119 +226,124 @@ function setup(){
     canvas_obj.setup();
 }
 
-function greed_player(player_name){
+function greed_player(player_name) {
 
-	//swap in greeting message in top display to prevent multiple setup initiation
+    //swap in greeting message in top display to prevent multiple setup initiation
     name = player_name;
     var display = document.querySelector('#tetris #top_display');
     display.removeChild(document.querySelector('#tetris #ask_name'));
     var greed = document.createElement('h3');
-    greed.innerHTML = "Thank you for playing - "+name;
+    greed.innerHTML = "Thank you for playing - " + name;
     greed.className = "inline";
     display.appendChild(greed);
 }
 
-function start(player_name){
+function start(player_name) {
 
-	//registers player, enable controls and starts the game
+    //registers player, enable controls and starts the game
     greed_player(player_name);
-    document.addEventListener("keydown", controls_handler); 
+    document.addEventListener("keydown", controls_handler);
     update();
+
 }
 
 var canvas_obj = {
 
-	//canvas object
+    //canvas object
     canvas: document.createElement("canvas"),
     ctx: null,
     counter: 0,
-	space: {},
-    setup: function(){
-		var canvas_container = document.createElement("div");
-		canvas_container.id = "canvas_container";
-		this.canvas.width = size * canvas_width;
-		this.canvas.height = size * canvas_height;
-		canvas_container.appendChild(this.canvas);
-		container.appendChild(canvas_container);
-		this.ctx = this.canvas.getContext("2d");
+    space: {},
+    setup: function () {
+        var canvas_container = document.createElement("div");
+        canvas_container.id = "canvas_container";
+        this.canvas.width = size * canvas_width;
+        this.canvas.height = size * canvas_height;
+        canvas_container.appendChild(this.canvas);
+        container.appendChild(canvas_container);
+        this.ctx = this.canvas.getContext("2d");
 
-		//setup block object with canvas's context
-		block.setup(this.ctx);
+        //setup block object with canvas's context
+        block.setup(this.ctx);
     },
-    draw: function() {
-		this.clear(); 
-		var space = this.space;
+    draw: function () {
+        this.clear();
+        var space = this.space;
 
-		//fills cells according to information recorded in the space object
-		for(var i = 0;i < canvas_height;i++){
-			if(space[i] !== undefined){
-				var keys = Object.keys(space[i]);
-				for(var j = 0;j<keys.length;j++){
-					var key = keys[j];
-					this.ctx.drawImage(space[i][key], 
-						key * size, 
-						i * size,
-						size, size);
-				}
-			}
-		}
-		
-		//draw the block	
-		block.draw();
+        //fills cells according to information recorded in the space object
+        for (var i = 0; i < canvas_height; i++) {
+            if (space[i] !== undefined) {
+                var keys = Object.keys(space[i]);
+                for (var j = 0; j < keys.length; j++) {
+                    var key = keys[j];
+                    this.ctx.drawImage(space[i][key],
+                            key * size,
+                            i * size,
+                            size, size);
+                }
+            }
+        }
+
+        //draw the block	
+        block.draw();
     },
-    handle_completed: function(completed){
-		var space = this.space;
+    handle_completed: function (completed) {
 
-		//add to score
-		switch(completed.length){
-			case 1:
-				this.counter += 1000;
-				break;
-			case 2:
-				this.counter += 3000;
-				break;
-			case 3:
-				this.counter += 6000;
-				break;
-			case 4:
-				this.counter += 10000;
-				break;
-		}
+        //sort completed to create bottom up order
+        completed.sort(function (a, b) {
+            return a - b
+        });
+        var space = this.space;
 
-		//update the space object base on the rows completed
-		var current = completed.pop();
-		var bottom = current;
-		var target = current - 1;
-		var next = completed.length ? completed.pop() : 0;
+        //add to score
+        switch (completed.length) {
+            case 1:
+                this.counter += 1000;
+                break;
+            case 2:
+                this.counter += 3000;
+                break;
+            case 3:
+                this.counter += 6000;
+                break;
+            case 4:
+                this.counter += 10000;
+                break;
+        }
 
-		while(space[target] !==  undefined){
-			if(target == next){
-				do{
-					next = completed.length ? completed.pop() : 0;
-					target--;
-				} while(target == next);
-			}
-			space[current] = space[target];
-			current--;
-			target--;
-		}
-		while(space[current] !== undefined){
-			delete space[current];
-			current--;
-		}
+        //update the space object base on the rows completed
+        var current = completed.pop();
+        var target = current - 1;
+        var next = completed.length ? completed.pop() : 0;
 
-		this.update_score();
-	},
-    update_score: function(){
-		document.querySelector('#tetris #counter').innerHTML = this.counter;
-	},
-	clear: function(){
-		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-	}
+        while (space[target] !== undefined) {
+            if (target == next) {
+                do {
+                    next = completed.length ? completed.pop() : 0;
+                    target--;
+                } while (target == next);
+            }
+            space[current] = space[target];
+            current--;
+            target--;
+        }
+        while (space[current] !== undefined) {
+            delete space[current];
+            current--;
+        }
+
+        this.update_score();
+    },
+    update_score: function () {
+        document.querySelector('#tetris #counter').innerHTML = this.counter;
+    },
+    clear: function () {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
 };
 
 var block = {
-	//player controlled block object
+    //player controlled block object
     shape: null,
     x: 0,
     y: 0,
@@ -346,203 +351,227 @@ var block = {
     dy: 0,
     landed: false,
     ctx: null,
-	id: 0,
-	img: null,
-    setup: function(ctx){
-		this.x = Math.floor(canvas_width / 2);
-		this.y = 0;
-		this.dx = 0;
-		this.dy = 0;
-		this.landed = false;
-		this.id = Math.floor(Math.random() * shapes.length);
-		this.shape = shapes[this.id]; 
-		this.ctx = ctx;
-		//this.ctx.fillStyle = colors[pick];
-		this.img = faces[this.id];
-		//this.draw();
+    id: 0,
+    img: null,
+    setup: function (ctx) {
+        this.x = Math.floor(canvas_width / 2);
+        this.y = 0;
+        this.dx = 0;
+        this.dy = 0;
+        this.landed = false;
+        this.id = Math.floor(Math.random() * shapes.length);
+        this.shape = shapes[this.id];
+        this.ctx = ctx;
+        //this.ctx.fillStyle = colors[pick];
+        this.img = faces[this.id];
+        //this.draw();
     },
-    try_rotate: function(drt){
+    try_rotate: function (drt) {
 
-		//modify shape's offsets to rotate the block
-		//x = y, y = -x to transform for turn right
-		//x = -y, y =x to transform for turn left
-		var new_offsets = [];
-		var offsets = this.shape.offsets;
-		for(var i = 0;i < offsets.length;i++){
-			new_offsets.push([offsets[i][1] * drt, -offsets[i][0] * drt]);
-		}
-		if(this.can_move(this.dx, this.dy, new_offsets)){
-			this.erase();	
-			this.shape.offsets = new_offsets;
-			this.draw();
-			return true;
-		} else return false;
+        //modify shape's offsets to rotate the block
+        //x = y, y = -x to transform for turn right
+        //x = -y, y =x to transform for turn left
+        var new_offsets = [];
+        var offsets = this.shape.offsets;
+        for (var i = 0; i < offsets.length; i++) {
+            new_offsets.push([offsets[i][1] * drt, -offsets[i][0] * drt]);
+        }
+        if (this.can_move(this.dx, this.dy, new_offsets)) {
+            this.erase();
+            this.shape.offsets = new_offsets;
+            this.draw();
+            return true;
+        } else
+            return false;
     },
-    try_move: function(dx, dy){
-		if(this.can_move(this.dx+dx, this.dy+dy, this.shape.offsets)){
-			this.dx += dx;
-			this.dy += dy;
-			return true;
-		} else return false;
+    try_move: function (dx, dy) {
+        if (this.can_move(this.dx + dx, this.dy + dy, this.shape.offsets)) {
+            this.dx += dx;
+            this.dy += dy;
+            return true;
+        } else
+            return false;
     },
-    can_move: function(dx, dy, offsets){
-		
-		//check with canvas width and height and space object to validate a move
-		var new_x = this.x + dx;
-		var new_y = this.y + dy;
-		var space = canvas_obj.space;
-		for(var i = 0;i < offsets.length;i++){
-			var offset_y = new_y + offsets[i][1];
-			if(offset_y > canvas_height - 1) return false;
-			var offset_x = new_x + offsets[i][0];
-			if(offset_x < 0 || offset_x >= canvas_width) return false;
-			if(space[offset_y] && space[offset_y][offset_x]) return false;
-		}
-		return true;
-    },
-    move: function(dx, dy){
-		this.x += dx;
-		this.y += dy;
-		this.dx = 0;
-		this.dy = 0;
-	},
-	take_space: function(x, y){
+    can_move: function (dx, dy, offsets) {
 
-		//update space object to take up the current space of the block
-		var completed = [];
-		var offsets = this.shape.offsets;
-		var space = canvas_obj.space;
-		for(var i = 0;i<offsets.length;i++){
-			var offset = offsets[i];
-			var offseted_y = y + offset[1];
-			var offseted_x = x + offset[0];
-			if(space[offseted_y] === undefined) 
-				space[offseted_y] = {};
-			space[offseted_y][offseted_x] = this.img;
-			if(Object.keys(space[offseted_y]).length == canvas_width){
-				
-				//push current offset's y onto competed when it completes a row
-				completed.push(offseted_y);
-			}
-		}
+        //check with canvas width and height and space object to validate a move
+        var new_x = this.x + dx;
+        var new_y = this.y + dy;
+        var space = canvas_obj.space;
+        for (var i = 0; i < offsets.length; i++) {
+            var offset_y = new_y + offsets[i][1];
+            if (offset_y > canvas_height - 1)
+                return false;
+            var offset_x = new_x + offsets[i][0];
+            if (offset_x < 0 || offset_x >= canvas_width)
+                return false;
+            if (space[offset_y] && space[offset_y][offset_x])
+                return false;
+        }
+        return true;
+    },
+    move: function (dx, dy) {
+        this.x += dx;
+        this.y += dy;
+        this.dx = 0;
+        this.dy = 0;
+    },
+    take_space: function (x, y) {
 
-		//return the completed array if any row is completed
-		if(completed.length){
-			completed.sort();
-			return completed;
-		} else return false;
+        //update space object to take up the current space of the block
+        var completed = [];
+        var offsets = this.shape.offsets;
+        var space = canvas_obj.space;
+        for (var i = 0; i < offsets.length; i++) {
+            var offset = offsets[i];
+            var offseted_y = y + offset[1];
+            var offseted_x = x + offset[0];
+            if (space[offseted_y] === undefined)
+                space[offseted_y] = {};
+            space[offseted_y][offseted_x] = this.img;
+            if (Object.keys(space[offseted_y]).length == canvas_width) {
+
+                //push current offset's y onto competed when it completes a row
+                completed.push(offseted_y);
+            }
+        }
+
+        //return the completed array if any row is completed
+        if (completed.length) {
+            return completed;
+        } else
+            return false;
     },
-    erase: function(){
-		
-		//erase current block from canvas
-		this.ctx.save();
-		this.ctx.globalCompositeOperation = 'destination-out';
-		this.draw();
-		this.ctx.restore();
+    erase: function () {
+
+        //erase current block from canvas
+        this.ctx.save();
+        this.ctx.globalCompositeOperation = 'destination-out';
+        this.draw();
+        this.ctx.restore();
     },
-    draw: function(){
-		
-		//draw current block on canvas
-		var offsets = this.shape.offsets;
-		for(var i = 0;i < offsets.length;i++){
-			var offseted_x = this.x + offsets[i][0];
-			var offseted_y = this.y + offsets[i][1];
-			this.ctx.drawImage(this.img, 
-				offseted_x * size, 
-				offseted_y * size,
-				size, size);
-		}
-	},
-	drop: function(){
-		
-		//try to drop down by 1 space
-		if(!this.try_move(0,1)) this.landed = true;
-		this.move(block.dx, block.dy);
+    draw: function () {
+
+        //draw current block on canvas
+        var offsets = this.shape.offsets;
+        for (var i = 0; i < offsets.length; i++) {
+            var offseted_x = this.x + offsets[i][0];
+            var offseted_y = this.y + offsets[i][1];
+            this.ctx.drawImage(this.img,
+                    offseted_x * size,
+                    offseted_y * size,
+                    size, size);
+        }
+    },
+    drop: function () {
+
+        //try to drop down by 1 space
+        if (!this.try_move(0, 1))
+            this.landed = true;
+        this.move(block.dx, block.dy);
     }
 }
 
 //setup the game only if there is an empty "tetris" div element 
 //and use it as the wrapper. 
 //compiler complains if not placed after all objects definitions.
-if(container && 
-    container.tagName == "DIV" && 
-    container.childNodes.length == 0){
+if (container &&
+        container.tagName == "DIV" &&
+        container.childNodes.length == 0) {
     container.style.width = (size * canvas_width * 2 + 10) + "px";
+    container.style.height = (size * canvas_height + 70) + "px";
     setup();
 }
 
-function update(){
+function update() {
 
-	//update game state
-	canvas_obj.draw();
-    if(block.landed) {
-		//let the canvas handle any completed rows
-		var completed;
-		if(completed = block.take_space(block.x, block.y)){ 
-			canvas_obj.handle_completed(completed);
-		}
+    //update game state
+    canvas_obj.draw();
+    if (block.landed) {
+        //let the canvas handle any completed rows
+        var completed;
+        if (completed = block.take_space(block.x, block.y)) {
+            canvas_obj.handle_completed(completed);
+        }
 
-		//checks if blocks has piled to top
-		if(canvas_obj.space[0] === undefined){ 
-			block.setup(block.ctx);
+        //checks if blocks has piled to top
+        if (canvas_obj.space[0] === undefined) {
+            block.setup(block.ctx);
 
-			//give chance to move the block
-			canvas_obj.draw();
-			setTimeout(function(){
-				block.drop();
+            //give chance to move the block
+            canvas_obj.draw();
+            setTimeout(function () {
+                block.drop();
 
-				//continue to the next frame
-				update();
-			}, speed);
-		} else {
-			game_over();
-		}
-    } else setTimeout(function(){ 
-				block.drop();
+                //continue to the next frame
+                update();
+            }, speed);
+        } else {
+            game_over();
+        }
+    } else
+        setTimeout(function () {
+            block.drop();
 
-				//continue to the next frame
-				update();
-			}, speed); 
+            //continue to the next frame
+            update();
+        }, speed);
 }
 
-function game_over(){
+function game_over() {
 
-	//handle when the game is over
-	//use ajax to check/update high score with database via php
-	request_scores("update", 
-		{player : name, score : canvas_obj.counter}, function(status, result){
+    //handle when the game is over
+    //use ajax to check/update high score with database via php
+    request_scores("update",
+            {player: name, score: canvas_obj.counter}, function (status, result) {
 
-		//an updated table is returned if you got a top score 
-		if(status == 200){
-			if(result){
-				var board = document.querySelector('#tetris #scoreboard');
-				board.removeChild(board.childNodes[0]);
-				board.appendChild(json_table(JSON.parse(result)));
-				alert("Game over. You got a high score. Check out the score board.");
-			} else alert("Game over. You did not get a high score.");
-		} else alert("Game over. Try again for a higher score."); 
-	});
+        //an updated table is returned if you got a top score 
+        if (status == 200) {
+            if (result) {
+                var board = $('#tetris #scoreboard');
+                alert("Game over. You got a high score. Check out the score board.");
+                board.slideUp(500, function () {
+                    board.empty();
+                    board.append(json_table(JSON.parse(result)));
+                    board.slideDown(500, function () {
+                        //var month = (date.getMonth() + 1);
+                        //var day = date.getDate();
+                        //var key = "#tetris #_" + name + 
+                        //	"_" + canvas_obj.counter + 
+                        //	"_" + date.getFullYear() + 
+                        //	(month > 9 ? "-" : "-0") + month + 
+                        //	(day > 9 ? "-" : "-0") + day;  
+                        //alert(key);
+                        //document.getElementById(key).style.backgroundColor = "yellow";
+                    });
+                });
+
+            } else
+                alert("Game over. You did not get a high score.");
+        } else
+            alert("Game over. Try again for a higher score.");
+    });
 }
 
-function controls_handler(e){
+function controls_handler(e) {
 
-	//directional and spin controls
+    //directional and spin controls
     var code = e.keyCode ? e.keyCode : e.charCode ? e.charCode : 0;
-    switch(code){
-	case 37:
-	    block.try_move(-1,0);
-	    break;
-	case 39:
-	    block.try_move(1,0);
-	    break;
-	case 40:
-	    block.try_move(0,1);
-	    break;
-	case 65:
-	    block.try_rotate(-1);
-	    break;
-	case 68:
-	    block.try_rotate(1);
-	    break;
+    switch (code) {
+        case 37:
+            block.try_move(-1, 0);
+            break;
+        case 39:
+            block.try_move(1, 0);
+            break;
+        case 40:
+            block.try_move(0, 1);
+            break;
+        case 65:
+            block.try_rotate(-1);
+            break;
+        case 68:
+            block.try_rotate(1);
+            break;
     }
 }
