@@ -141,34 +141,45 @@ function score_setup() {
 
 }
 
-function scoreboard_setup() {
+function scoreboard_setup(board) {
 
-    //initiate the scoreboard area
-    var board = document.createElement("div");
+	//initiate the scoreboard area
     board.id = "scoreboard";
     board.style.width = (canvas_width * size) + "px";
+	board.style.display = "none";
 
-    request_scores("get", {}, function (status, result) {
-        if (status == 200 && result) {
-            try {
-                board.appendChild(json_table(JSON.parse(result)));
-            } catch (e) {
-                board.innerHTML = result;
-            }
+    request_scores("GET", {}, function (result, textStatus, xhr) {
+        if (textStatus == "success") {
+			if(result.length > 0){
+				try {
+					var columns = [ "name", "score", "date" ];
+					board.appendChild(json_table(result, columns));
+				} catch (e) {
+					board.appendChild(generate_error("Fail to generate Table."));
+				}
+			} else board.appendChild(generate_error("No highscores available."));
+
         } else {
-            var err = document.createElement("h3");
-            err.innerHTML = "Error sending Request.";
-            err.className = "error";
-            board.appendChild(err);
+            board.appendChild(generate_error("Error sending Request."));
         }
+
+		$(board).slideDown(500);
     });
 
-    return board;
+	return board;
 }
 
-function request_scores(option, params, callback) {
+function generate_error(msg) {
+	var err = document.createElement("h3");
+	err.innerHTML = msg;
+	err.className = "error";
 
-    //use ajax to get or update scores with myql via php
+	return err;
+}
+
+function request_scores(method, sendData, callback) {
+	
+	/*
     var request = new XMLHttpRequest();
     request.onreadystatechange = function () {
         if (this.readyState == 4)
@@ -181,33 +192,63 @@ function request_scores(option, params, callback) {
     request.open("POST", "tetris_scores.php", true);
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
-    message = "action=" + option;
+	message = "action=" + option;
     Object.keys(params).forEach(function (key) {
         message += ("&" + key + "=" + params[key]);
     });
 
-    request.send(message);
+	switch(method) {
+		case "GET":
+			request.open(method, "http://scores/tetris_scores", true);
+			break;
+		case "POST":
+			request.open(method, "http://scores/tetris_scores/add", true);
+			request.setRequestHeader("Content-type", "application/json");
+			break;	
+	}
+
+    request.send(params);
+	*/
+
+    //use ajax to get or update scores with myql via php
+	var targetUrl;
+	switch(method) {
+		case "GET":
+			targetUrl = "http://scores/api/tetris_scores";
+			break;
+		case "POST":
+			targetUrl = "http://scores/api/tetris_scores/add";
+			break;	
+	}
+
+		
+	$.ajax({
+		type: method,
+		dataType: 'json',
+		url: targetUrl,
+		data: sendData
+	}).always(callback);
 }
 
-function json_table(results) {
+function json_table(results, columns) {
 
     //returns an filled table element from a json
     var table = document.createElement("table");
     var row = document.createElement("tr");
     var cell;
 
-    Object.keys(results[0]).forEach(function (key) {
+    columns.forEach(function (column) {
         cell = document.createElement("th");
-        cell.innerHTML = key;
+        cell.innerHTML = column;
         row.appendChild(cell);
     });
     table.appendChild(row);
+
     results.forEach(function (result) {
         row = document.createElement("tr");
-        Object.values(result).forEach(function (value) {
+        columns.forEach(function (column) {
             cell = document.createElement("td");
-            cell.innerHTML = value;
-            row.id = row.id + "_" + value;
+            cell.innerHTML = result[column];
             row.appendChild(cell);
         });
         table.appendChild(row);
@@ -222,7 +263,9 @@ function setup() {
     prepare_css();
     container.appendChild(top_display_setup());
     container.appendChild(score_setup());
-    container.appendChild(scoreboard_setup());
+    var board = document.createElement("div");
+    container.appendChild(board);
+	scoreboard_setup(board);
     canvas_obj.setup();
 }
 
@@ -522,35 +565,27 @@ function game_over() {
 
     //handle when the game is over
     //use ajax to check/update high score with database via php
-    request_scores("update",
-            {player: name, score: canvas_obj.counter}, function (status, result) {
+    request_scores("POST", {"name": name, "score": canvas_obj.counter}, function (result, textStatus, xhr) {
+        if (textStatus == "success") {
 
-        //an updated table is returned if you got a top score 
-        if (status == 200) {
-            if (result) {
-                var board = $('#tetris #scoreboard');
-                alert("Game over. You got a high score. Check out the score board.");
-                board.slideUp(500, function () {
-                    board.empty();
-                    board.append(json_table(JSON.parse(result)));
-                    board.slideDown(500, function () {
-                        //var month = (date.getMonth() + 1);
-                        //var day = date.getDate();
-                        //var key = "#tetris #_" + name + 
-                        //	"_" + canvas_obj.counter + 
-                        //	"_" + date.getFullYear() + 
-                        //	(month > 9 ? "-" : "-0") + month + 
-                        //	(day > 9 ? "-" : "-0") + day;  
-                        //alert(key);
-                        //document.getElementById(key).style.backgroundColor = "yellow";
-                    });
-                });
-
-            } else
-                alert("Game over. You did not get a high score.");
-        } else
-            alert("Game over. Try again for a higher score.");
+			console.log(result);
+			var resultObj = result['result']; 
+			switch(resultObj['code']) {
+				case 0:
+					alert("Game over. You did not get a high score.");
+					break;
+				case 1:
+					var board = $('#tetris #scoreboard');
+					alert("Game over. You got a high score. Check out the score board.");
+					board.slideUp(500, function () {
+						board.empty();
+						scoreboard_setup(board[0]);	
+					});
+					break;
+			}
+		} else alert("Game over. Try again for a higher score.");
     });
+
 }
 
 function controls_handler(e) {
