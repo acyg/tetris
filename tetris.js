@@ -211,16 +211,8 @@ function request_scores(method, sendData, callback) {
 	*/
 
     //use ajax to get or update scores with myql via php
-	var targetUrl;
-	switch(method) {
-		case "GET":
-			targetUrl = "http://scores/api/tetris_scores";
-			break;
-		case "POST":
-			targetUrl = "http://scores/api/tetris_scores/add";
-			break;	
-	}
-
+	var targetUrl = "http://13.56.107.102/scores/public/api/tetris_scores";
+	if(method == "POST") targetUrl += "/add";
 		
 	$.ajax({
 		type: method,
