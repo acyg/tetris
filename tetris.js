@@ -150,7 +150,6 @@ function scoreboard_setup(board) {
 
     request_scores("GET", {}, function (result, textStatus, xhr) {
         if (textStatus == "success") {
-            console.log(JSON.stringify(result) + " " + result.length);
             if (result.length > 0) {
                 try {
                     var columns = ["name", "score", "date"];
@@ -214,8 +213,8 @@ function request_scores(method, sendData, callback) {
 
     //use ajax to get or update scores with myql via php
     let hash = window.location.hash;
-    let targetUrl = "http://scores/api/tetris_scores";
-    //let targetUrl = "http://13.56.107.102/scores/public/api/tetris_scores";
+    //let targetUrl = "http://scores/api/tetris_scores";
+    let targetUrl = "http://13.56.107.102/scores/public/api/tetris_scores";
     if (hash == "#fire")
         targetUrl += "/fire";
     if (method == "POST")
