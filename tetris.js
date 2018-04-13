@@ -150,16 +150,17 @@ function scoreboard_setup(board) {
 
     request_scores("GET", {}, function (result, textStatus, xhr) {
         if (textStatus == "success") {
-            if (result.length > 0) {
+            if (result.error) {
+                board.appendChild(generate_error("No highscores available."));
+            } else {
                 try {
                     var columns = ["name", "score", "date"];
                     board.appendChild(json_table(result, columns));
                 } catch (e) {
                     board.appendChild(generate_error("Fail to generate Table."));
                 }
-            } else
-                board.appendChild(generate_error("No highscores available."));
 
+            }
         } else {
             board.appendChild(generate_error("Error sending Request."));
         }
@@ -222,9 +223,10 @@ function request_scores(method, sendData, callback) {
 
     $.ajax({
         type: method,
-        dataType: 'json',
         url: targetUrl,
-        data: sendData
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify(sendData),
     }).always(callback);
 }
 
@@ -567,7 +569,6 @@ function game_over() {
         request_scores("POST", {"name": name, "score": canvas_obj.counter}, function (result, textStatus, xhr) {
             if (textStatus == "success") {
 
-                console.log(result);
                 var resultObj = result['result'];
                 switch (resultObj['code']) {
                     case 0:
