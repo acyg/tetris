@@ -83,6 +83,7 @@ var shapes = [
     }
 ];
 var name;
+var init = true;
 
 //try to look a specific container 
 var container = document.querySelector("#tetris");
@@ -141,34 +142,78 @@ function score_setup() {
 
 }
 
-function scoreboard_setup(board) {
+function scoreboard_setup() {
 
     //initiate the scoreboard area
+
+    var board = document.createElement("div");
     board.id = "scoreboard";
     board.style.width = (canvas_width * size) + "px";
-    board.style.display = "none";
 
+    if (window.location.hash == "#fire") {
+        var dataRef = firebase.database().ref("scores/tetris");
+        dataRef.on('value', (snapshot) => {
+
+            while (board.firstChild) {
+                board.removeChild(board.firstChild);
+            }
+            board.style.display = "none";
+
+            try {
+                let data = snapshot.val();
+                let ary = [];
+
+                Object.keys(data).forEach((key) => {
+                    ary.push(data[key]);
+                });
+
+                ary.sort((a, b) => {
+                    return b.score - a.score;
+                });
+
+                postScores(board, ary);
+            } catch (e) {
+                board.appendChild(generate_error("No highscores available."));
+            }
+
+            $(board).slideDown(500);
+
+        });
+    } else
+        updateScores(board);
+
+    //init = !init;
+    return board;
+}
+
+function updateScores(board) {
+
+    while (board.firstChild) {
+        board.removeChild(board.firstChild);
+    }
+    board.style.display = "none";
     request_scores("GET", {}, function (result, textStatus, xhr) {
         if (textStatus == "success") {
             if (result.error) {
                 board.appendChild(generate_error("No highscores available."));
             } else {
-                try {
-                    var columns = ["name", "score", "date"];
-                    board.appendChild(json_table(result, columns));
-                } catch (e) {
-                    board.appendChild(generate_error("Fail to generate Table."));
-                }
-
+                postScores(board, result);
             }
         } else {
             board.appendChild(generate_error("Error sending Request."));
         }
-
         $(board).slideDown(500);
     });
 
-    return board;
+}
+
+function postScores(board, result) {
+    try {
+        let columns = ["name", "score", "date"];
+        board.appendChild(json_table(result, columns));
+    } catch (e) {
+        board.appendChild(generate_error("Fail to generate Table."));
+    }
 }
 
 function generate_error(msg) {
@@ -263,9 +308,9 @@ function setup() {
     prepare_css();
     container.appendChild(top_display_setup());
     container.appendChild(score_setup());
-    var board = document.createElement("div");
-    container.appendChild(board);
-    scoreboard_setup(board);
+    //var board = scoreboard_setup();
+    container.appendChild(scoreboard_setup());
+    //updateScores(board);
     canvas_obj.setup();
 }
 
@@ -561,31 +606,82 @@ function update() {
         }, speed);
 }
 
+function pushData(data, dataRef, key) {
+    $.get("iphelper.php").always((result) => {
+        //console.log(result);
+        data["ip-address"] = result;
+
+        let date = new Date();
+        let year = date.getFullYear();
+        let month = date.getMonth() + 1;
+        let day = date.getDate();
+        date = year + "-" + (month < 10 ? ("0" + month) : month) + "-" + day;
+        //console.log(date);
+        data["date"] = date;
+
+        if (key == "")
+            key = dataRef.push().key;
+        dataRef.child(key).set(data);
+    });
+}
+
 function game_over() {
 
     //handle when the game is over
     if (canvas_obj.counter > 0) {
-        //use ajax to check/update high score with database via php
-        request_scores("POST", {"name": name, "score": canvas_obj.counter}, function (result, textStatus, xhr) {
-            if (textStatus == "success") {
 
-                var resultObj = result['result'];
-                switch (resultObj['code']) {
-                    case 0:
-                        alert("Game over. You did not get a high score.");
-                        break;
-                    case 1:
-                        var board = $('#tetris #scoreboard');
-                        alert("Game over. You got a high score. Check out the score board.");
-                        board.slideUp(500, function () {
-                            board.empty();
-                            scoreboard_setup(board[0]);
-                        });
-                        break;
+        var data = {"name": name, "score": canvas_obj.counter}
+
+        if (window.location.hash == "#fire") {
+            var board = $('#tetris #scoreboard');
+            let max_size = 10;
+            var dataRef = firebase.database().ref("scores/tetris");
+            dataRef.once('value').then((snapshot) => {
+                let size = snapshot.numChildren();
+                if (size < max_size) {
+                    pushData(data, dataRef, "");
+                } else {
+                    dataRef.orderByChild('score').limitToFirst(1).once('value').then((snapshot) => {
+
+                        let val = snapshot.val();
+                        let key = Object.keys(val)[0];
+                        val = val[key];
+                        let high_score = val.score;
+                        if (high_score < canvas_obj.counter) {
+                            alert("Game over. You got a high score. Check out the score board.");
+                            board.slideUp(500, () => {
+                                pushData(data, dataRef, key);
+                            });
+                        } else
+                            alert("Game over. You did not get a high score.");
+
+                    })
+
                 }
-            } else
-                alert("Game over. Try again for a higher score.");
-        });
+            })
+        } else {
+
+            //use ajax to check/update high score with database
+            request_scores("POST", data, function (result, textStatus, xhr) {
+                if (textStatus == "success") {
+
+                    var resultObj = result['result'];
+                    switch (resultObj['code']) {
+                        case 0:
+                            alert("Game over. You did not get a high score.");
+                            break;
+                        case 1:
+                            alert("Game over. You got a high score. Check out the score board.");
+                            var board = $('#tetris #scoreboard');
+                            board.slideUp(500, () => {
+                                updateScores(board[0]);
+                            });
+                            break;
+                    }
+                } else
+                    alert("Game over. Try again for a higher score.");
+            });
+        }
     } else
         alert("Game over. You did not get a high score.");
 
