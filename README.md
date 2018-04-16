@@ -1,7 +1,7 @@
 # tetris
 
 A tetris game implemented with html canvas, css, javascript, jQuery.
-It features a scoreboard supported by Ajax request to a RESTful API. 
+It features a scoreboard interfacing with a REST API adn Google Firebase realtime database. 
 
 http://13.56.107.102/tetris/tetris.html will interfaces with MYSQL database.
 
